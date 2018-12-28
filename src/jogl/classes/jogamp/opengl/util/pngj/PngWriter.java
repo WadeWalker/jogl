@@ -575,6 +575,7 @@ public class PngWriter {
 	 *
 	 * @deprecated Better use writeRow(ImageLine imgline, int rownumber)
 	 */
+	@Deprecated
 	public void writeRow(final ImageLine imgline) {
 		writeRow(imgline.scanline, imgline.getRown());
 	}

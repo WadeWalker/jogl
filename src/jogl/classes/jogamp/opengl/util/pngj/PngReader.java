@@ -596,6 +596,7 @@ public class PngReader {
 	 * @deprecated Now {@link #readRow(int)} implements the same funcion. This
 	 *             method will be removed in future releases
 	 */
+	@Deprecated
 	public ImageLine getRow(final int nrow) {
 		return readRow(nrow);
 	}
