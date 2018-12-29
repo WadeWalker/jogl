@@ -73,7 +73,6 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit_jogl_newt.compile.classpath"/>
             <src path="${src.test}" />
@@ -89,7 +88,6 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit_jogl_newt_oculusvr.compile.classpath"/>
             <src path="${src.test}" />
@@ -129,8 +127,7 @@
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
                source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
+               target="${target.targetlevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit_jogl_newt_android.compile.classpath"/>
             <src path="${src.test}" />
