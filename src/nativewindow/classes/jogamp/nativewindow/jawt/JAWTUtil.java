@@ -91,10 +91,6 @@ public class JAWTUtil {
   private static final Method isQueueFlusherThread;
   private static final boolean j2dExist;
 
-  private static final Method  sunToolkitAWTLockMethod;
-  private static final Method  sunToolkitAWTUnlockMethod;
-  private static final boolean hasSunToolkitAWTLock;
-
   private static final RecursiveLock jawtLock;
   private static final ToolkitLock jawtToolkitLock;
 
@@ -102,14 +98,9 @@ public class JAWTUtil {
   private static final Method getCGDisplayIDMethodOnOSX;
 
   private static class PrivilegedDataBlob1 {
-    PrivilegedDataBlob1() {
-        ok = false;
-    }
-    Method sunToolkitAWTLockMethod;
-    Method sunToolkitAWTUnlockMethod;
+    PrivilegedDataBlob1() {}
     Method getScaleFactorMethod;
     Method getCGDisplayIDMethodOnOSX;
-    boolean ok;
   }
 
   /**
@@ -324,10 +315,6 @@ public class JAWTUtil {
         jawtLockObject = null;
         isQueueFlusherThread = null;
         j2dExist = false;
-        sunToolkitAWTLockMethod = null;
-        sunToolkitAWTUnlockMethod = null;
-        hasSunToolkitAWTLock = false;
-        // hasSunToolkitAWTLock = false;
         getScaleFactorMethod = null;
         getCGDisplayIDMethodOnOSX = null;
     } else {
@@ -355,16 +342,6 @@ public class JAWTUtil {
             public Object run() {
                 final PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
                 try {
-                    final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
-                    d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
-                    d.sunToolkitAWTLockMethod.setAccessible(true);
-                    d.sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
-                    d.sunToolkitAWTUnlockMethod.setAccessible(true);
-                    d.ok=true;
-                } catch (final Exception e) {
-                    // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
-                }
-                try {
                     final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
                     final Class<?> gdClass = gd.getClass();
                     d.getScaleFactorMethod = gdClass.getDeclaredMethod("getScaleFactor");
@@ -377,22 +354,8 @@ public class JAWTUtil {
                 return d;
             }
         });
-        sunToolkitAWTLockMethod = pdb1.sunToolkitAWTLockMethod;
-        sunToolkitAWTUnlockMethod = pdb1.sunToolkitAWTUnlockMethod;
         getScaleFactorMethod = pdb1.getScaleFactorMethod;
         getCGDisplayIDMethodOnOSX = pdb1.getCGDisplayIDMethodOnOSX;
-
-        boolean _hasSunToolkitAWTLock = false;
-        if ( pdb1.ok ) {
-            try {
-                sunToolkitAWTLockMethod.invoke(null, (Object[])null);
-                sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
-                _hasSunToolkitAWTLock = true;
-            } catch (final Exception e) {
-            }
-        }
-        hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
-        // hasSunToolkitAWTLock = false;
     }
 
     jawtLock = LockFactory.createRecursiveLock();
@@ -445,7 +408,6 @@ public class JAWTUtil {
     }
 
     if (DEBUG) {
-        System.err.println("JAWTUtil: Has sun.awt.SunToolkit.awtLock/awtUnlock " + hasSunToolkitAWTLock);
         System.err.println("JAWTUtil: Has Java2D " + j2dExist);
         System.err.println("JAWTUtil: Is headless " + headlessMode);
         final int hints = ( null != desktophints ) ? desktophints.size() : 0 ;
@@ -499,15 +461,7 @@ public class JAWTUtil {
     jawtLock.lock();
     if( 1 == jawtLock.getHoldCount() ) {
         if(!headlessMode && !isJava2DQueueFlusherThread()) {
-            if(hasSunToolkitAWTLock) {
-                try {
-                    sunToolkitAWTLockMethod.invoke(null, (Object[])null);
-                } catch (final Exception e) {
-                  throw new NativeWindowException("SunToolkit.awtLock failed", e);
-                }
-            } else {
-                jawtLockObject.Lock();
-            }
+        	jawtLockObject.Lock();
         }
     }
     if(ToolkitLock.TRACE_LOCK) { System.err.println("JAWTUtil-ToolkitLock.lock(): "+jawtLock); }
@@ -528,15 +482,7 @@ public class JAWTUtil {
     if(ToolkitLock.TRACE_LOCK) { System.err.println("JAWTUtil-ToolkitLock.unlock(): "+jawtLock); }
     if( 1 == jawtLock.getHoldCount() ) {
         if(!headlessMode && !isJava2DQueueFlusherThread()) {
-            if(hasSunToolkitAWTLock) {
-                try {
-                    sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
-                } catch (final Exception e) {
-                  throw new NativeWindowException("SunToolkit.awtUnlock failed", e);
-                }
-            } else {
-                jawtLockObject.Unlock();
-            }
+        	jawtLockObject.Unlock();
         }
     }
     jawtLock.unlock();
