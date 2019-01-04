@@ -264,8 +264,14 @@
           <pathelement location="${gluegen.jar}" />
           <pathelement location="${antlr.jar}" />
         </path>
-        <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
-                 classpathref="gluegen.classpath" />
+
+        <!-- skip taskdef in "clean" target, since the GlueGen task will itself have been removed by clean -->
+        <if>
+         <not> <equals arg1="${ant.project.invoked-targets}" arg2="clean" /> </not>
+         <then>
+             <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask" classpathref="gluegen.classpath" />
+         </then>
+        </if>
         
         <property name="gluegen-gl.jar"             value="${build.jogl}/gluegen-gl.jar" />
 
