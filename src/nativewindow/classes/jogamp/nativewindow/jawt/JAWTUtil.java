@@ -506,13 +506,9 @@ public class JAWTUtil {
   }
 
   /**
-   * Returns the pixel scale factor of the given {@link GraphicsDevice}, if supported.
+   * Returns the pixel scale factor of the given {@link GraphicsDevice}.
    * <p>
-   * If the component does not support pixel scaling the default
-   * <code>one</code> is returned.
-   * </p>
-   * <p>
-   * Note: Currently only supported on OSX since 1.7.0_40 for HiDPI retina displays
+   * If SKIP_AWT_HIDPI is set, returns the default <code>one</code>.
    * </p>
    * @param device the {@link GraphicsDevice} instance used to query the pixel scale
    * @param minScale current and output min scale values
@@ -527,20 +523,7 @@ public class JAWTUtil {
       float sx = 1f;
       float sy = 1f;
       if( !SKIP_AWT_HIDPI ) {
-          if( null != getCGDisplayIDMethodOnOSX ) {
-              // OSX specific, preserving double type
-              try {
-                  final Object res = getCGDisplayIDMethodOnOSX.invoke(device);
-                  if (res instanceof Integer) {
-                      final int displayID = ((Integer)res).intValue();
-                      sx = (float) OSXUtil.GetPixelScaleByDisplayID(displayID);
-                      sy = sx;
-                  }
-              } catch (final Throwable t) {}
-          }
-          
-          GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-          GraphicsConfiguration gc = gd.getDefaultConfiguration(); 
+          GraphicsConfiguration gc = device.getDefaultConfiguration(); 
           AffineTransform tx = gc.getDefaultTransform();
           sx = (float)tx.getScaleX(); 
           sy = (float)tx.getScaleY(); 
@@ -552,16 +535,12 @@ public class JAWTUtil {
   }
 
   /**
-   * Returns the pixel scale factor of the given {@link GraphicsConfiguration}'s {@link GraphicsDevice}, if supported.
+   * Returns the pixel scale factor of the given {@link GraphicsConfiguration}'s {@link GraphicsDevice}.
    * <p>
    * If the {@link GraphicsDevice} is <code>null</code>, <code>zero</code> is returned.
    * </p>
    * <p>
-   * If the component does not support pixel scaling the default
-   * <code>one</code> is returned.
-   * </p>
-   * <p>
-   * Note: Currently only supported on OSX since 1.7.0_40 for HiDPI retina displays
+   * If SKIP_AWT_HIDPI is set, returns the default <code>one</code>.
    * </p>
    * @param gc the {@link GraphicsConfiguration} instance used to query the pixel scale
    * @param minScale current and output min scale values
