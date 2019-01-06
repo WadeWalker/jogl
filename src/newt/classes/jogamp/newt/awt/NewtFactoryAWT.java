@@ -35,7 +35,6 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
 
 import jogamp.nativewindow.awt.AWTMisc;
-import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.nativewindow.jawt.x11.X11SunJDKReflection;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.newt.Debug;
@@ -169,20 +168,13 @@ public class NewtFactoryAWT extends NewtFactory {
    * @see #createScreen(java.awt.Component, boolean)
    */
   public static MonitorDevice getMonitorDevice(final Screen screen, final java.awt.Component awtComp) throws IllegalArgumentException {
-      final java.awt.GraphicsConfiguration gc = checkComponentValid(awtComp);
-      final String nwt = NativeWindowFactory.getNativeWindowType(true);
       MonitorDevice res = null;
       screen.addReference();
       try {
-          if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
-              res = screen.getMonitor( JAWTUtil.getMonitorDisplayID( gc.getDevice() ) );
-          }
-          if( null == res ) {
-              // Fallback, use AWT component coverage
-              final Point los = AWTMisc.getLocationOnScreenSafe(null, awtComp, false);
-              final RectangleImmutable r = new Rectangle(los.getX(), los.getY(), awtComp.getWidth(), awtComp.getHeight());
-              res = screen.getMainMonitor(r);
-          }
+          // use AWT component coverage
+          final Point los = AWTMisc.getLocationOnScreenSafe(null, awtComp, false);
+          final RectangleImmutable r = new Rectangle(los.getX(), los.getY(), awtComp.getWidth(), awtComp.getHeight());
+          res = screen.getMainMonitor(r);
       } finally {
           screen.removeReference();
       }

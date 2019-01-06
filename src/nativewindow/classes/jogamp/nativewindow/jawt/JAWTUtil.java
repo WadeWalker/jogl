@@ -45,8 +45,6 @@ import java.awt.Toolkit;
 import java.awt.geom.AffineTransform;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -61,7 +59,6 @@ import jogamp.common.os.PlatformPropsImpl;
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.jawt.x11.X11SunJDKReflection;
-import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.nativewindow.x11.X11Lib;
 
 import com.jogamp.common.os.Platform;
@@ -94,13 +91,6 @@ public class JAWTUtil {
 
   private static final RecursiveLock jawtLock;
   private static final ToolkitLock jawtToolkitLock;
-
-  private static final Method getCGDisplayIDMethodOnOSX;
-
-  private static class PrivilegedDataBlob1 {
-    PrivilegedDataBlob1() {}
-    Method getCGDisplayIDMethodOnOSX;
-  }
 
   /**
    * Returns true if this platform's JAWT implementation supports offscreen layer.
@@ -314,7 +304,6 @@ public class JAWTUtil {
         jawtLockObject = null;
         isQueueFlusherThread = null;
         j2dExist = false;
-        getCGDisplayIDMethodOnOSX = null;
     } else {
         // Non-headless case
         JAWTJNILibLoader.initSingleton(); // load libjawt.so
@@ -334,23 +323,6 @@ public class JAWTUtil {
         }
         isQueueFlusherThread = isQueueFlusherThreadTmp;
         j2dExist = j2dExistTmp;
-
-        final PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                final PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
-                try {
-                    final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-                    final Class<?> gdClass = gd.getClass();
-                    if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
-                        d.getCGDisplayIDMethodOnOSX = gdClass.getDeclaredMethod("getCGDisplayID");
-                        d.getCGDisplayIDMethodOnOSX.setAccessible(true);
-                    }
-                } catch (final Throwable t) {}
-                return d;
-            }
-        });
-        getCGDisplayIDMethodOnOSX = pdb1.getCGDisplayIDMethodOnOSX;
     }
 
     jawtLock = LockFactory.createRecursiveLock();
@@ -489,20 +461,6 @@ public class JAWTUtil {
 
   public static ToolkitLock getJAWTToolkitLock() {
     return jawtToolkitLock;
-  }
-
-  public static final int getMonitorDisplayID(final GraphicsDevice device) {
-      int displayID = 0;
-      if( null != getCGDisplayIDMethodOnOSX ) {
-          // OSX specific
-          try {
-              final Object res = getCGDisplayIDMethodOnOSX.invoke(device);
-              if (res instanceof Integer) {
-                  displayID = ((Integer)res).intValue();
-              }
-          } catch (final Throwable t) {}
-      }
-      return displayID;
   }
 
   /**
